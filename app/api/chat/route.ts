@@ -206,8 +206,14 @@ function toBulletsFromRows(rows: { content: string }[], maxBullets: number) {
   }
   return bullets;
 }
-
+export async function GET() {
+  return NextResponse.json({
+    ok: true,
+    hint: "API is alive. Use POST /api/chat with { message }",
+  });
+}
 export async function POST(req: Request) {
+  
   try {
     const body = await req.json().catch(() => ({} as unknown));
     const question =
