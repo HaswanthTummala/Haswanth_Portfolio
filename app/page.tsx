@@ -35,24 +35,23 @@ useEffect(() => {
 }, [messages, chatOpen]);
 
   // ✅ ONE (and only one) sendMessage function
-  async function sendMessage(customText?: string, topicOverride?: string) {
+  async function sendMessage(customText?: string) {
   const t = (customText ?? text).trim();
   if (!t) return;
 
+  // user message
   setMessages((m) => [...m, { role: "user", text: t }]);
   setText("");
   setSuggest([]);
 
-  // choose topic to send
-  const topicToSend = (topicOverride ?? lastTopic ?? "").trim();
-
+  // bot thinking
   setMessages((m) => [...m, { role: "bot", text: "⏳ Thinking..." }]);
 
   try {
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: t, topic: topicToSend }),
+      body: JSON.stringify({ message: t }),
     });
 
     const raw = await res.text();
@@ -60,28 +59,21 @@ useEffect(() => {
     if (!res.ok) {
       setMessages((m) => {
         const copy = [...m];
-        copy[copy.length - 1] = { role: "bot", text: `API error ${res.status}: ${raw.slice(0, 200)}` };
+        copy[copy.length - 1] = { role: "bot", text: `API error ${res.status}: ${raw}` };
         return copy;
       });
       return;
     }
 
-    let data: unknown = null;
-    try { data = JSON.parse(raw); } catch { data = { reply: raw }; }
-
-    const reply =
-      typeof (data as { reply?: unknown })?.reply === "string"
-        ? String((data as { reply: string }).reply)
-        : "No reply returned from API.";
+    const data = JSON.parse(raw) as { reply?: string; suggest?: string[] };
 
     setMessages((m) => {
       const copy = [...m];
-      copy[copy.length - 1] = { role: "bot", text: reply };
+      copy[copy.length - 1] = { role: "bot", text: data.reply ?? "No reply" };
       return copy;
     });
 
-    const suggestArr = (data as { suggest?: unknown })?.suggest;
-    if (Array.isArray(suggestArr)) setSuggest(suggestArr.filter((x) => typeof x === "string") as string[]);
+    if (Array.isArray(data.suggest)) setSuggest(data.suggest);
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Unknown network error";
     setMessages((m) => {
@@ -249,7 +241,7 @@ onClick={() => {
  } else {
   const topic = s.toLowerCase();
   setLastTopic(topic);
-  sendMessage(s, topic); // ✅ pass topic immediately
+  sendMessage(s); // ✅ pass topic immediately
 }
 
 
