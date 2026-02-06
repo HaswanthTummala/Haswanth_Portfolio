@@ -63,7 +63,7 @@ if (
   s.includes("certification") ||
   s.includes("certifications") ||
   s.includes("certificate")
-) return "about";
+) return "education";
 
 
 
@@ -206,12 +206,26 @@ function toBulletsFromRows(rows: { content: string }[], maxBullets: number) {
   }
   return bullets;
 }
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "Access-Control-Allow-Origin": "*", // or your domain
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    },
+  });
+}
+
+
 export async function GET() {
   return NextResponse.json({
     ok: true,
-    hint: "API is alive. Use POST /api/chat with { message }",
+    hint: "Use POST /api/chat with JSON { message }",
   });
 }
+
 export async function POST(req: Request) {
   
   try {
@@ -264,6 +278,7 @@ if (wantsMore && intent === "unknown" && bodyTopic) {
         suggest: suggestions(),
       });
     }
+
 
     // ✅ only here we run vector RAG
     const supabase = getSupabaseAdmin();
