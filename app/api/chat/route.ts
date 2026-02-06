@@ -1,8 +1,11 @@
 export const runtime = "nodejs";
 
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { pipeline } from "@xenova/transformers";
+
+
 
 const RESUME_LINK =
   "https://drive.google.com/drive/folders/1CH_nLX1GKnTzzOb-PaHEAp4T739i_eXP?usp=sharing";
@@ -71,12 +74,17 @@ if (
 }
 
 // ---- Embedder (cached) ----
-let embedder: Awaited<ReturnType<typeof pipeline>> | null = null;
+// let embedder: Awaited<ReturnType<typeof pipeline>> | null = null;
+let embedder: ((input: string, options: { pooling: "mean" }) => Promise<unknown>) | null = null;
 
 async function getEmbedder() {
-  if (!embedder) {
-    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
-  }
+  if (embedder) return embedder;
+
+  // ✅ lazy import (prevents GET from crashing)
+  const mod = await import("@xenova/transformers");
+  const pipe = await mod.pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+
+  embedder = pipe as unknown as (input: string, options: { pooling: "mean" }) => Promise<unknown>;
   return embedder;
 }
 
@@ -280,13 +288,15 @@ if (wantsMore && intent === "unknown" && bodyTopic) {
       });
     }
 
+const embed = await getEmbedder();
+const embOut = await embed(question, { pooling: "mean" });
 
     // ✅ only here we run vector RAG
     const supabase = getSupabaseAdmin();
     const rawEmbedder = await getEmbedder();
-    const embed = asFeatureExtractor(rawEmbedder);
+    //const embed = asFeatureExtractor(rawEmbedder);
 
-    const embOut = await embed(question, { pooling: "mean" });
+    //const embOut = await embed(question, { pooling: "mean" });
     const queryEmbedding = l2Normalize(toVector384(embOut));
 
     const { data, error } = await supabase.rpc("match_knowledge", {
