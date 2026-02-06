@@ -206,6 +206,12 @@ function toBulletsFromRows(rows: { content: string }[], maxBullets: number) {
   }
   return bullets;
 }
+export async function GET() {
+  return new Response(
+    JSON.stringify({ ok: true, route: "chat", method: "GET" }),
+    { headers: { "Content-Type": "application/json" } }
+  );
+}
 
 export async function OPTIONS() {
   return new Response(null, {
