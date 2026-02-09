@@ -54,7 +54,7 @@ const PROJECTS: Project[] = [
       "Analyzed food production and per-capita consumption trends across 45 African countries (2004–2013) using data visualization, identifying sustained growth and the impact of the 2007 global food crisis. Evaluated production versus consumption patterns to assess food security, sustainability, and regional disparities. Highlighted population growth–driven food insecurity risks and emphasized the need for coordinated long-term agricultural and policy strategies.",
     tech: ["Python", "Pandas", "EDA", "KMeans", "Visualization"],
     github: "https://github.com/HaswanthTummala?tab=repositories",
-    image: "/portfolio/picture2.png",
+    image: "/portfolio/pic.png",
   },
   {
     title: "Real-Time News App",
